@@ -133,6 +133,21 @@ fn test_add_vector(){
   assert!( a + b == c );
 }
 
+impl Vec{
+  // multiply by a scalar
+  fn scale(&self, a: MyFloat) -> Vec {
+    let Vec(sx, sy, sz) = *self;
+    Vec(sx*a, sy*a, sz*a)
+  }
+}
+
+#[test]
+fn test_scale_vector(){
+  let a = Vec(1., 2., 3.);
+  let b : MyFloat = 10.;
+  let c = Vec(10., 20., 30.);
+  assert!( a.scale(b) == c );
+}
 
 /* ----------------------------------------------------------- */
 
@@ -143,6 +158,7 @@ fn main(){
   let mut table_velocity = FunctionalTable::new(~"velocity");
   let zero = Vec(0., 0., 0.);
   let vec_1x = Vec(1.,0.,0.);
+  let delta_time = 1./10. as MyFloat;
   
   // TODO I'm not very happy to use lambda just for
   // accessing the data.
@@ -152,13 +168,14 @@ fn main(){
     e
   };
   
-  /* Move all the entities with a velocity.
+  /* Move all the entities with the velocity applied during dt time.
    Having a velocity imply having a position! */
-  let move_object = || {
+  let move_object = |dt| {
     for x in table_velocity.iter() {
       let (&e,vel) : (&Entity,&Vec) = x;
       let pos = *table_position.get(e);
-      table_position.set(e, vel + pos);
+      let new_pos = pos + vel.scale(dt);
+      table_position.set(e, new_pos);
     }
   };
   
@@ -167,7 +184,7 @@ fn main(){
   
   for cycle in range(1u, 11) {
     println!("start_cycle {}",cycle);
-    move_object();
+    move_object(delta_time);
   }
   
 }

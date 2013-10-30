@@ -26,9 +26,9 @@ What I did so far:
   - make generic the functional table
   - textual log display using Rust log system
     (to be completed for the new functions)
+  - velocity (with no acceleration)
 
 What's next:
-  - velocity (with no acceleration)
   - gravity force and acceleration integration
   - the planet definition
   - detect collision with the planet and reaction
