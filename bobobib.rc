@@ -1,0 +1,220 @@
+
+/*
+
+                       BOBOBIB
+          
+              BOuncing Balls On a BIg Ball
+
+
+ -------------------------------------------------------------
+
+  Author: Joris Rehm
+          GitHub: joris-r
+          Email: joris.rehm@wakusei.fr
+
+  Goal: Make spheres moving, bouncing and colliding on the
+        surface of a planet. I will also try this new shining
+        thing called Entity Component System (ECS). The main
+        goal is in fact to learn Rust.
+
+ -------------------------------------------------------------
+ 
+What I did so far:
+  - a trivial way of recording (what I'm calling)
+    functional components using a HasMap
+  - a trivial manager for the entities
+  - trivial 3D vector (no operations yet)
+  - make generic the functional table
+  - textual log display using Rust log system
+    (to be completed for the new functions)
+
+What's next:
+  - velocity (with no acceleration)
+  - gravity force and acceleration integration
+  - the planet definition
+  - detect collision with the planet and reaction
+  - create a library for the ECS
+  - graphical display
+  - render a plain circle
+  - try multi-thread processing
+  
+*/
+
+/* TODO use the same license than rust */
+
+
+
+/*
+OK let's try defining an entity component system (ECS).
+See:
+  - http://en.wikipedia.org/wiki/Entity_component_system
+  - TODO retrouver un bon tuto/article
+*/
+
+
+/* ----------------------------------------------------------- */
+
+
+/* The components will we stored in tables a little bit like in
+relational database.
+We will distinguish two kind of components:
+  - "functional component" when there is a 0..1 relation between an entity
+    and its component.
+  - "relational component" when there is any number of component (of
+    a certain kind) associated to one entity. */
+
+struct FunctionalTable<C> {
+  priv name : ~str,
+  priv map : ~std::hashmap::HashMap<Entity, C> 
+}
+
+impl<C : ToStr> FunctionalTable<C> {
+
+  fn new(name : ~str) -> FunctionalTable<C>{
+    info!(format!("create_table name={}",name));
+    FunctionalTable{
+      name : name,
+      map : ~std::hashmap::HashMap::new()
+    }
+  }
+  
+  fn set(&mut self, e : Entity, v : C) {
+    info!(format!("set id={} cmpt={} val={}", e, self.name, v.to_str() ));
+    self.map.swap(e,v);
+  }
+  
+  /* fail if the entity e does not have a component */
+  fn get<'a>(&'a self, e : Entity) -> &'a C {
+    self.map.get(&e)
+  }
+
+  /* TODO create an own iterator type (or re-use some trait) */
+  fn iter<'a>(&'a self) -> std::hashmap::HashMapIterator<'a, Entity, C> {
+    self.map.iter()
+  }
+  
+}
+
+#[test]
+fn test_FunctionalTable(){
+  let mut table : FunctionalTable<Vec> = FunctionalTable::new(~"test");
+  let vec = Vec(12., 56., 3.);
+  let e1 = 42;
+  table.set(e1,vec);
+  assert!( vec == *table.get(e1) );
+}
+
+
+/* ----------------------------------------------------------- */
+
+
+/* We need a type for the entities, which is just an identifier. */
+type Entity = uint;
+
+/* Let's defining a data structure for managing our ECS. */
+struct Manager {
+  /* There is a data to remember the numbers of created entities. */
+  priv entities_numbers : uint,
+  
+  /* Tables for components */
+  /* TODO is it possible to define a default value ? */
+  table_position : FunctionalTable<Vec>,
+  table_velocity : FunctionalTable<Vec>
+}
+
+impl Manager {
+  /* Inializing an empty ECS */ 
+  fn new() -> ~Manager {
+    ~Manager {
+      entities_numbers : 0,
+      table_position : FunctionalTable::new(~"position"),
+      table_velocity : FunctionalTable::new(~"velocity")
+    }
+  }
+  
+  /* Creating an new entity is just taking a unused id. */
+  fn new_entity(&mut self) -> Entity {
+    let res = self.entities_numbers;
+    self.entities_numbers = self.entities_numbers + 1;
+    info!(format!("create_entity id={}", res));
+    res
+  }
+  
+  /* TODO: how to manage the deletion of entities ?
+     It depend if we iterate on entity id or on component tables.
+     Maybe it's enought to delete the associated components.*/
+
+} /* impl Manager */
+
+
+#[test]
+fn test_entity_management() {
+  let mut mng = Manager::new();
+  let e1 = mng.new_entity();
+  assert!( e1 == 0 );
+  let e2 = mng.new_entity();
+  assert!( e2 == 1 );
+}
+
+
+/* ----------------------------------------------------------- */
+
+
+/* We're using double size float */
+type MyFloat = f64;
+
+/* Simple vector type for 2D position */
+#[deriving(Eq)]
+struct Vec(MyFloat, MyFloat, MyFloat);
+
+impl ToStr for Vec {
+  fn to_str(&self) -> ~str {
+    let &Vec(x,y,z) = self;
+    format!("({},{},{})", x, y, z)
+  }
+}
+
+
+/* ----------------------------------------------------------- */
+
+
+/* TODO passing the manager on the heap is boring */
+fn create_entity_at_origin(mng : &mut Manager) -> Entity{
+  let e = mng.new_entity();
+  let zero = Vec(0., 0., 0.);
+  mng.table_position.set(e, zero);
+  return e;
+}
+
+/* Move all the entities with a velocity.
+   Having a velocity imply having a position! */
+// fn move_object(mng : &mut Manager) {
+//   for (&e,vel) in mng.table_velocity.iter() {
+//     let pos = mng.table_position.get(e);
+//     // TODO create an add function for Vec
+//     let &Vec(vecx, vecy, vecz) = vel;
+//     let &Vec(posx, posy, posz) = pos;
+//     let new_pos = Vec(posx+vecx, posy+vecy, posz+vecz);
+//     mng.table_position.set(e, new_pos);
+//     println!("{}",new_pos.to_str());
+//   }
+// }
+
+
+/* ----------------------------------------------------------- */
+
+
+fn main(){
+
+  let mut mng = Manager::new();
+  
+  let entity1 : Entity = create_entity_at_origin(mng);
+  let vec_1x = Vec(1.,0.,0.);
+  mng.table_velocity.set(entity1,vec_1x);
+  
+//   for cycle in range(1u, 11) {
+//     println!("start_cycle {}",cycle);
+//     move_object(mng);
+//   }
+  
+}
