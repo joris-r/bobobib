@@ -117,16 +117,25 @@ impl ToStr for Vec {
   }
 }
 
+impl Add<Vec, Vec> for Vec {
+  fn add(&self, rhs: &Vec) -> Vec {
+    let &Vec(ax, ay, az) = self;
+    let &Vec(bx, by, bz) = rhs;
+    Vec(bx+ax, by+ay, bz+az)
+  }
+}
+
+#[test]
+fn test_add_vector(){
+  let a = Vec(1., 2., 3.);
+  let b = Vec(3., 2., 1.);
+  let c = Vec(4., 4., 4.);
+  assert!( a + b == c );
+}
+
 
 /* ----------------------------------------------------------- */
 
-
-// TODO use a trait
-fn add_vector(a : Vec, b : Vec) -> Vec {
-  let Vec(ax, ay, az) = a;
-  let Vec(bx, by, bz) = b;
-  Vec(bx+ax, by+ay, bz+az)
-}
 
 fn main(){
   let mut mng = Manager::new();
@@ -135,7 +144,7 @@ fn main(){
   let zero = Vec(0., 0., 0.);
   let vec_1x = Vec(1.,0.,0.);
   
-  // TODO I'm not very happy to use lambda only for
+  // TODO I'm not very happy to use lambda just for
   // accessing the data.
   let create_entity_at_origin = || {
     let e = mng.new_entity();
@@ -146,13 +155,12 @@ fn main(){
   /* Move all the entities with a velocity.
    Having a velocity imply having a position! */
   let move_object = || {
-    for (&e,&vel) in table_velocity.iter() {
-      let &pos = table_position.get(e);
-      let new_pos = add_vector(vel, pos);
-      table_position.set(e, new_pos);
+    for x in table_velocity.iter() {
+      let (&e,vel) : (&Entity,&Vec) = x;
+      let pos = *table_position.get(e);
+      table_position.set(e, vel + pos);
     }
   };
-    
   
   let entity1 : Entity = create_entity_at_origin();
   table_velocity.set(entity1,vec_1x);
