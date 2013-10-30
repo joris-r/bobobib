@@ -18,7 +18,7 @@ struct FunctionalTable<C> {
   priv map : ~std::hashmap::HashMap<Entity, C> 
 }
 
-impl<C : ToStr> FunctionalTable<C> {
+impl<C : ToStr + Clone> FunctionalTable<C> {
 
   fn new(name : ~str) -> FunctionalTable<C>{
     info!(format!("create_table name={}",name));
@@ -43,10 +43,20 @@ impl<C : ToStr> FunctionalTable<C> {
     self.map.iter()
   }
   
+  fn apply(&mut self, f : &fn(Entity, &C) -> C) {
+    let copy = self.map.clone();
+    // TODO do I really need to copy all the map ?
+    for (&e,c) in copy.iter() {
+      let new_c = f(e, c);
+      info!(format!("set id={} cmpt={} val={}", e, self.name, new_c.to_str() ));
+      self.map.swap(e, new_c);
+    }
+  }
+  
 }
 
 #[test]
-fn test_FunctionalTable(){
+fn test_FunctionalTable_get_set(){
   let mut table : FunctionalTable<Vec> = FunctionalTable::new(~"test");
   let vec = Vec(12., 56., 3.);
   let e1 = 42;
@@ -107,7 +117,7 @@ fn test_entity_management() {
 type MyFloat = f64;
 
 /* Simple vector type for 3D position */
-#[deriving(Eq)]
+#[deriving(Eq,Clone)]
 struct Vec(MyFloat, MyFloat, MyFloat);
 
 impl ToStr for Vec {
@@ -149,6 +159,7 @@ fn test_scale_vector(){
   assert!( a.scale(b) == c );
 }
 
+
 /* ----------------------------------------------------------- */
 
 
@@ -156,9 +167,12 @@ fn main(){
   let mut mng = Manager::new();
   let mut table_position = FunctionalTable::new(~"position");
   let mut table_velocity = FunctionalTable::new(~"velocity");
+  let mut table_acceleration = FunctionalTable::new(~"acceleration");
+  let mut table_mass = FunctionalTable::new(~"mass");
   let zero = Vec(0., 0., 0.);
   let vec_1x = Vec(1.,0.,0.);
   let delta_time = 1./10. as MyFloat;
+  let earth_gravity = 9.80665; // in m/s²
   
   // TODO I'm not very happy to use lambda just for
   // accessing the data.
@@ -168,9 +182,41 @@ fn main(){
     e
   };
   
+  let gravity_force_at = |pos: Vec| {
+    //TODO
+    Vec(1.,0.,0.)
+  };
+  
+  // Having an acceleration imply having a velocity!
+  // Having an acceleration imply having a mass!
+  let compute_acceleration = || {
+    let fun = |e, accel: &Vec| {
+      // note: accel not used
+      let pos = table_position.get(e);
+      let force = gravity_force_at(*pos);
+      let mass = *table_mass.get(e);
+      force.scale(1./mass)
+    };
+    table_acceleration.apply(fun);
+  };
+  
+  // TODO define an integration function and refactor
+  // compute_velocity and compute_position.
+  
+  // integration of acceleration
+  // having a acceleration imply having a velocity
+  let compute_velocity = |dt| {
+    for x in table_acceleration.iter() {
+      let (&e,accel) : (&Entity,&Vec) = x;
+      let vel : Vec = *table_velocity.get(e);
+      let new_vel = vel + accel.scale(dt);
+      table_velocity.set(e, new_vel);
+    }
+  };
+  
   /* Move all the entities with the velocity applied during dt time.
    Having a velocity imply having a position! */
-  let move_object = |dt| {
+  let compute_position = |dt| {
     for x in table_velocity.iter() {
       let (&e,vel) : (&Entity,&Vec) = x;
       let pos = *table_position.get(e);
@@ -180,11 +226,15 @@ fn main(){
   };
   
   let entity1 : Entity = create_entity_at_origin();
-  table_velocity.set(entity1,vec_1x);
+  table_velocity.set(entity1, vec_1x);
+  table_acceleration.set(entity1, zero);
+  table_mass.set(entity1, 1.);
   
   for cycle in range(1u, 11) {
     println!("start_cycle {}",cycle);
-    move_object(delta_time);
+    compute_acceleration();
+    compute_velocity(delta_time);
+    compute_position(delta_time);
   }
   
 }

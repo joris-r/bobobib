@@ -27,9 +27,11 @@ What I did so far:
   - textual log display using Rust log system
     (to be completed for the new functions)
   - velocity (with no acceleration)
+  - use (fake) gravity force to compute acceleration
+  - use acceleration to compute velocity
 
 What's next:
-  - gravity force and acceleration integration
+  - compute gravity force vector from position
   - the planet definition
   - detect collision with the planet and reaction
   - create a library for the ECS
