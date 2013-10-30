@@ -40,9 +40,19 @@ What's next:
   
 */
 
-/* TODO use the same license than rust */
 
+/*
+                    License stuff
+----------------------------------------------------------
+Copyright 2013 Joris Rehm
 
+Licensed under the Apache License, Version 2.0.
+Licensed under The MIT License
+
+See joined files "LICENSE-APACHE" and "LICENSE-MIT".
+----------------------------------------------------------
+
+*/
 
 /*
 OK let's try defining an entity component system (ECS).
