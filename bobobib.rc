@@ -95,7 +95,9 @@ impl Manager {
   
   /* TODO: how to manage the deletion of entities ?
      It depend if we iterate on entity id or on component tables.
-     Maybe it's enought to delete the associated components.*/
+     Maybe it's enought to delete the associated components.
+     We may use a pool of unused id for recycling (probably not
+     very needed) or just search for not associated id.*/
 
 } /* impl Manager */
 

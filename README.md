@@ -1,24 +1,29 @@
 
 
-                       BOBOBIB
+# BOBOBIB
           
-              BOuncing Balls On a BIg Ball
+BOuncing Balls On a BIg Ball
 
 
  -------------------------------------------------------------
 
-  Author: Joris Rehm
-          GitHub: joris-r
-          Email: joris.rehm@wakusei.fr
+## Author:
 
-  Goal: Make spheres moving, bouncing and colliding on the
-        surface of a planet. I will also try this new shining
-        thing called Entity Component System (ECS). The main
-        goal is in fact to learn Rust.
+  Joris Rehm, 
+  login on GitHub joris-r, 
+  Email: joris.rehm@wakusei.fr
+
+## Goal
+
+Make spheres moving, bouncing and colliding on the
+surface of a planet. I will also try this new shining
+thing called Entity Component System (ECS). The main
+goal is in fact to learn Rust.
 
  -------------------------------------------------------------
  
-What I did so far:
+## What I did so far
+
   - a trivial way of recording (what I'm calling)
     functional components using a HasMap
   - a trivial manager for the entities
@@ -30,7 +35,8 @@ What I did so far:
   - use (fake) gravity force to compute acceleration
   - use acceleration to compute velocity
 
-What's next:
+## What's next
+
   - compute gravity force vector from position
   - the planet definition
   - detect collision with the planet and reaction
@@ -41,7 +47,8 @@ What's next:
 
  -------------------------------------------------------------
 
-TODO introduce things
+## TODO introduce things
+
 OK let's try defining an entity component system (ECS).
 See:
   - http://en.wikipedia.org/wiki/Entity_component_system
