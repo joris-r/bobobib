@@ -167,6 +167,17 @@ impl Vec{
     let Vec(sx, sy, sz) = *self;
     Vec(sx*a, sy*a, sz*a)
   }
+
+  fn length(&self) -> MyFloat {
+    let Vec(sx, sy, sz) = *self;
+    (sx*sx + sy*sy + sz*sz).sqrt()
+  }
+  
+  fn normalize(&self) -> Vec {
+    let l = self.length();
+    self.scale(1. / l)
+  }
+  
 }
 
 #[test]
@@ -177,6 +188,18 @@ fn test_scale_vector(){
   assert!( a.scale(b) == c );
 }
 
+#[test]
+fn test_length_vector(){
+  let a = Vec(2., 2., 1.);
+  assert!( a.length() == 3. );
+}
+
+#[test]
+fn test_norm_vector(){
+  let a = Vec(0., 2., 0.);
+  let b = Vec(0., 1., 0.);
+  assert!( a.normalize() == b );
+}
 
 /* ----------------------------------------------------------- */
 
