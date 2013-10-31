@@ -137,12 +137,28 @@ impl Add<Vec, Vec> for Vec {
   }
 }
 
+impl Sub<Vec, Vec> for Vec {
+  fn sub(&self, rhs: &Vec) -> Vec{
+    let &Vec(ax, ay, az) = self;
+    let &Vec(bx, by, bz) = rhs;
+    Vec(ax-bx, ay-by, az-bz)
+  }
+}
+
 #[test]
 fn test_add_vector(){
   let a = Vec(1., 2., 3.);
   let b = Vec(3., 2., 1.);
   let c = Vec(4., 4., 4.);
   assert!( a + b == c );
+}
+
+#[test]
+fn test_sub_vector(){
+  let a = Vec(1., 2., 3.);
+  let b = Vec(3., 2., 1.);
+  let c = Vec(4., 4., 4.);
+  assert!( c - b == a);
 }
 
 impl Vec{

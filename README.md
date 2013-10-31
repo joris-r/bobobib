@@ -34,9 +34,11 @@ goal is in fact to learn Rust.
   - velocity (with no acceleration)
   - use (fake) gravity force to compute acceleration
   - use acceleration to compute velocity
+  - substraction of vector
 
 ## What's next
 
+  - normalization of vector
   - compute gravity force vector from position
   - the planet definition
   - detect collision with the planet and reaction
