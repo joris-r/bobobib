@@ -178,6 +178,13 @@ impl Vec{
     self.scale(1. / l)
   }
   
+  fn is_nan(&self) -> bool {
+    let Vec(sx, sy, sz) = *self;
+    sx.is_nan() ||
+    sy.is_nan() ||
+    sz.is_nan()
+  }
+  
 }
 
 #[test]
@@ -212,20 +219,33 @@ fn main(){
   let mut table_mass = FunctionalTable::new(~"mass");
   let zero = Vec(0., 0., 0.);
   let vec_1x = Vec(1.,0.,0.);
-  let delta_time = 1./10. as MyFloat;
+  let vec_1y = Vec(0.,1.,0.);
+  let delta_time = 1./24. as MyFloat;
   let earth_gravity = 9.80665; // in m/s²
   
   // TODO I'm not very happy to use lambda just for
   // accessing the data.
-  let create_entity_at_origin = || {
-    let e = mng.new_entity();
-    table_position.set(e, zero);
-    e
-  };
   
   let gravity_force_at = |pos: Vec| {
-    //TODO
-    Vec(1.,0.,0.)
+    let planet_center = Vec(0.,0.,0.);
+    
+    // the vector from planet center to the pos
+    let pos_from_planet = pos - planet_center;
+    // TODO and yes it's useless :)
+    
+    let dist = pos_from_planet.length();
+    
+    let gravity_force =
+      pos_from_planet.normalize(
+      ).scale(- earth_gravity
+      ).scale(1./(dist*dist));
+    
+    if gravity_force.is_nan() {
+      Vec(0.,0.,0.)
+    } else {
+      gravity_force
+    }
+    
   };
   
   // Having an acceleration imply having a velocity!
@@ -266,12 +286,14 @@ fn main(){
     }
   };
   
-  let entity1 : Entity = create_entity_at_origin();
-  table_velocity.set(entity1, vec_1x);
+  let entity1 = mng.new_entity();
+  table_position.set(entity1, vec_1y.scale(10.) );
+  table_velocity.set(entity1, vec_1x.scale(10.) );
   table_acceleration.set(entity1, zero);
   table_mass.set(entity1, 1.);
   
-  for cycle in range(1u, 11) {
+  println("use RUST_LOG=3 to see log");
+  for cycle in range(1u, 25) {
     println!("start_cycle {}",cycle);
     compute_acceleration();
     compute_velocity(delta_time);

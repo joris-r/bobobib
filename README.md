@@ -37,10 +37,9 @@ goal is in fact to learn Rust.
   - substraction of vectors
   - length of a vector
   - normalization of a vector
+  - compute gravity force vector from position
 
 ## What's next
-  - compute distance between two vector
-  - compute gravity force vector from position
   - the planet definition
   - detect collision with the planet and reaction
   - create a library for the ECS
