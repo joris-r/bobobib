@@ -10,6 +10,7 @@ See joined files "LICENSE-APACHE" and "LICENSE-MIT".
 ----------------------------------------------------------
 */
 
+extern mod sdl;
 
 /* ----------------------------------------------------------- */
 
@@ -211,7 +212,7 @@ fn test_norm_vector(){
 /* ----------------------------------------------------------- */
 
 
-fn main(){
+fn test(){
   let mut mng = Manager::new();
   let mut table_position = FunctionalTable::new(~"position");
   let mut table_velocity = FunctionalTable::new(~"velocity");
@@ -300,4 +301,33 @@ fn main(){
     compute_position(delta_time);
   }
   
+}
+
+
+#[main]
+pub fn main() {
+    sdl::init([sdl::InitVideo]);
+    sdl::wm::set_caption("Bouncing Balls On a Big Ball", "Bobobib");
+
+    let screen = match sdl::video::set_video_mode
+      (800, 600, 32, [sdl::video::HWSurface],[sdl::video::DoubleBuf]) {
+        Ok(screen) => screen,
+        Err(err) => fail!("Impossible to open screen: {}", err)
+    };
+
+    'main : loop {
+        'event : loop {
+            match sdl::event::poll_event() {
+                sdl::event::QuitEvent => break 'main,
+                sdl::event::NoEvent => break 'event,
+                sdl::event::KeyEvent(k, _, _, _)
+                    if k == sdl::event::EscapeKey
+                        => break 'main,
+                _ => {}
+            }
+        }
+        screen.flip();
+    }
+
+    sdl::quit();
 }
