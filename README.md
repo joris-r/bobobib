@@ -54,6 +54,8 @@ goal is in fact to learn Rust.
 OK let's try defining an entity component system (ECS).
 See:
   - http://en.wikipedia.org/wiki/Entity_component_system
+  - http://www.richardlord.net/blog/what-is-an-entity-framework
+  - http://entity-systems-wiki.t-machine.org/
   - TODO retrouver un bon tuto/article
 
 The components will we stored in tables a little bit like in

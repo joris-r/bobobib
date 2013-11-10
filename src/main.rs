@@ -21,7 +21,7 @@ struct FunctionalTable<C> {
 impl<C : ToStr + Clone> FunctionalTable<C> {
 
   fn new(name : ~str) -> FunctionalTable<C>{
-    info!(format!("create_table name={}",name));
+    info!("create_table name={}",name);
     FunctionalTable{
       name : name,
       map : ~std::hashmap::HashMap::new()
@@ -29,7 +29,7 @@ impl<C : ToStr + Clone> FunctionalTable<C> {
   }
   
   fn set(&mut self, e : Entity, v : C) {
-    info!(format!("set id={} cmpt={} val={}", e, self.name, v.to_str() ));
+    info!("set id={} cmpt={} val={}", e, self.name, v.to_str() );
     self.map.swap(e,v);
   }
   
@@ -48,7 +48,7 @@ impl<C : ToStr + Clone> FunctionalTable<C> {
     // TODO do I really need to copy all the map ?
     for (&e,c) in copy.iter() {
       let new_c = f(e, c);
-      info!(format!("set id={} cmpt={} val={}", e, self.name, new_c.to_str() ));
+      info!("set id={} cmpt={} val={}", e, self.name, new_c.to_str() );
       self.map.swap(e, new_c);
     }
   }
@@ -89,7 +89,7 @@ impl Manager {
   fn new_entity(&mut self) -> Entity {
     let res = self.entities_numbers;
     self.entities_numbers = self.entities_numbers + 1;
-    info!(format!("create_entity id={}", res));
+    info!("create_entity id={}", res);
     res
   }
   
