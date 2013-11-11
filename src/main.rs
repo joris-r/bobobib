@@ -75,14 +75,23 @@ type Entity = uint;
 /* Let's defining a data structure for managing our ECS. */
 struct Manager {
   /* There is a data to remember the numbers of created entities. */
-  priv entities_numbers : uint
+  priv entities_numbers : uint,
+  // tables
+  table_position : FunctionalTable<Vec>,
+  table_velocity : FunctionalTable<Vec>,
+  table_acceleration : FunctionalTable<Vec>,
+  table_mass : FunctionalTable<MyFloat>
 }
 
 impl Manager {
   /* Inializing an empty ECS */ 
   fn new() -> ~Manager {
     ~Manager {
-      entities_numbers : 0
+      entities_numbers : 0,
+      table_position : FunctionalTable::new(~"position"),
+      table_velocity : FunctionalTable::new(~"velocity"),
+      table_acceleration : FunctionalTable::new(~"acceleration"),
+      table_mass : FunctionalTable::new(~"mass")
     }
   }
   
@@ -211,101 +220,117 @@ fn test_norm_vector(){
 
 /* ----------------------------------------------------------- */
 
-
-fn test(){
-  let mut mng = Manager::new();
-  let mut table_position = FunctionalTable::new(~"position");
-  let mut table_velocity = FunctionalTable::new(~"velocity");
-  let mut table_acceleration = FunctionalTable::new(~"acceleration");
-  let mut table_mass = FunctionalTable::new(~"mass");
-  let zero = Vec(0., 0., 0.);
-  let vec_1x = Vec(1.,0.,0.);
-  let vec_1y = Vec(0.,1.,0.);
-  let delta_time = 1./24. as MyFloat;
-  let earth_gravity = 9.80665; // in m/s²
+// TODO define an integration function and refactor
+// compute_velocity and compute_position.
   
-  // TODO I'm not very happy to use lambda just for
-  // accessing the data.
+/* ----------------------------------------------------------- */
   
-  let gravity_force_at = |pos: Vec| {
-    let planet_center = Vec(0.,0.,0.);
-    
-    // the vector from planet center to the pos
-    let pos_from_planet = pos - planet_center;
-    // TODO and yes it's useless :)
-    
-    let dist = pos_from_planet.length();
-    
-    let gravity_force =
-      pos_from_planet.normalize(
-      ).scale(- earth_gravity
-      ).scale(1./(dist*dist));
-    
-    if gravity_force.is_nan() {
-      Vec(0.,0.,0.)
-    } else {
-      gravity_force
-    }
-    
-  };
-  
-  // Having an acceleration imply having a velocity!
-  // Having an acceleration imply having a mass!
-  let compute_acceleration = || {
-    let fun = |e, accel: &Vec| {
-      // note: accel not used
-      let pos = table_position.get(e);
-      let force = gravity_force_at(*pos);
-      let mass = *table_mass.get(e);
-      force.scale(1./mass)
-    };
-    table_acceleration.apply(fun);
-  };
-  
-  // TODO define an integration function and refactor
-  // compute_velocity and compute_position.
-  
-  // integration of acceleration
-  // having a acceleration imply having a velocity
-  let compute_velocity = |dt| {
-    for x in table_acceleration.iter() {
-      let (&e,accel) : (&Entity,&Vec) = x;
-      let vel : Vec = *table_velocity.get(e);
-      let new_vel = vel + accel.scale(dt);
-      table_velocity.set(e, new_vel);
-    }
-  };
-  
-  /* Move all the entities with the velocity applied during dt time.
-   Having a velocity imply having a position! */
-  let compute_position = |dt| {
-    for x in table_velocity.iter() {
-      let (&e,vel) : (&Entity,&Vec) = x;
-      let pos = *table_position.get(e);
-      let new_pos = pos + vel.scale(dt);
-      table_position.set(e, new_pos);
-    }
-  };
-  
-  let entity1 = mng.new_entity();
-  table_position.set(entity1, vec_1y.scale(10.) );
-  table_velocity.set(entity1, vec_1x.scale(10.) );
-  table_acceleration.set(entity1, zero);
-  table_mass.set(entity1, 1.);
-  
+fn init_system() -> ~Manager {
   println("use RUST_LOG=3 to see log");
-  for cycle in range(1u, 25) {
-    println!("start_cycle {}",cycle);
-    compute_acceleration();
-    compute_velocity(delta_time);
-    compute_position(delta_time);
-  }
-  
+  let mut mng = Manager::new();
+  let zero = Vec(0., 0., 0.);
+  let entity1 = mng.new_entity();
+  mng.table_position.set(entity1, Vec(1.,0.,0.).scale(20.) );
+  mng.table_velocity.set(entity1, Vec(0.,1.,0.).scale(0.87) );
+  mng.table_acceleration.set(entity1, zero);
+  mng.table_mass.set(entity1, 1.);
+  return mng;
 }
 
+fn system_loop(mng : &mut Manager, cycle : uint, screen: &sdl::video::Surface){
+  let delta_time = 1./24. as MyFloat; // TODO compute real delay
 
-#[main]
-pub fn main() {
+  println!("start_cycle {}",cycle);
+  
+  compute_acceleration(mng);
+  compute_velocity(mng, delta_time);
+  compute_position(mng, delta_time);
+  draw(mng,screen)
+}
+
+fn draw(mng: &Manager, screen: &sdl::video::Surface){
+  screen.clear();
+  for x in mng.table_position.iter() {
+    let (&e,pos) : (&Entity,&Vec) = x;
+    let Vec(pos_x,pos_y,_) = *pos;
+    let mut x = 0;
+    let mut y = 0;
+    let scale = 5.;
+    x = (pos_x*scale + 400.) as i16;
+    y = (pos_y*scale + 300.) as i16 ;
+    draw_plot(screen, x, y);
+  }
+}
+  
+// Having an acceleration imply having a velocity!
+// Having an acceleration imply having a mass!
+fn compute_acceleration(mng: &mut Manager) {
+  let comp = |e: uint, accel: &Vec| {
+    // note: accel not used
+    let pos = mng.table_position.get(e);
+    let force = gravity_force_at(*pos);
+    let mass = *mng.table_mass.get(e);
+    force.scale(1./mass)
+  };
+  mng.table_acceleration.apply(comp);
+}
+
+fn gravity_force_at(pos: Vec) -> Vec {
+  let earth_gravity = 9.80665; // in m/s²
+  let planet_center = Vec(0.,0.,0.);
+  
+  // the vector from planet center to the pos
+  let pos_from_planet = pos - planet_center;
+  // TODO and yes it's useless :)
+  
+  let dist = pos_from_planet.length();
+  
+  let gravity_force =
+    pos_from_planet.normalize(
+    ).scale(- earth_gravity
+    ).scale(1./(dist*dist));
+  
+  if gravity_force.is_nan() {
+    Vec(0.,0.,0.)
+  } else {
+    gravity_force
+  }
+}
+
+// integration of acceleration
+// having a acceleration imply having a velocity
+fn compute_velocity (mng: &mut Manager, dt: MyFloat) {
+  for x in mng.table_acceleration.iter() {
+    let (&e,accel) : (&Entity,&Vec) = x;
+    let vel : Vec = *mng.table_velocity.get(e);
+    let new_vel = vel + accel.scale(dt);
+    mng.table_velocity.set(e, new_vel);
+  }
+}
+
+// Move all the entities with the velocity applied during dt time.
+// Having a velocity imply having a position!
+fn compute_position(mng: &mut Manager, dt:MyFloat) {
+  for x in mng.table_velocity.iter() {
+    let (&e,vel) : (&Entity,&Vec) = x;
+    let pos = *mng.table_position.get(e);
+    let new_pos = pos + vel.scale(dt);
+    mng.table_position.set(e, new_pos);
+  }
+}
+
+fn draw_plot(screen : &sdl::video::Surface, px : i16, py : i16){
+  let rect = Some(sdl::Rect {
+                x: px-1,
+                y: py-1,
+                w: 3,
+                h: 3
+            });
+  let color= sdl::video::RGB(255,255,255);
+  screen.fill_rect(rect,color);
+}
+
+fn main() {
     sdl::init([sdl::InitVideo]);
     sdl::wm::set_caption("Bouncing Balls On a Big Ball", "Bobobib");
 
@@ -314,6 +339,9 @@ pub fn main() {
         Ok(screen) => screen,
         Err(err) => fail!("Impossible to open screen: {}", err)
     };
+    
+    let mut mng = init_system();
+    let mut cycle = 1;
 
     'main : loop {
         'event : loop {
@@ -326,7 +354,12 @@ pub fn main() {
                 _ => {}
             }
         }
+        system_loop(mng, cycle, screen);
+        cycle += 1;
         screen.flip();
+//         if cycle == 100 {
+//           break 'main;
+//         }
     }
 
     sdl::quit();

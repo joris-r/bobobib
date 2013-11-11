@@ -38,12 +38,13 @@ goal is in fact to learn Rust.
   - length of a vector
   - normalization of a vector
   - compute gravity force vector from position
+  - graphical display (just a plot in 2D)
 
 ## What's next
+  - add a notion of view/camera
   - the planet definition
   - detect collision with the planet and reaction
   - create a library for the ECS
-  - graphical display
   - render a plain circle
   - try multi-thread processing
 
