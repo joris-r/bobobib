@@ -41,7 +41,10 @@ goal is in fact to learn Rust.
   - graphical display (just a plot in 2D)
 
 ## What's next
-  - add a notion of view/camera
+  - express the system by an iterator combined with an atomic operation
+  - operation for random vector between given limits
+  - real-time timing
+  - notion of view/camera
   - the planet definition
   - detect collision with the planet and reaction
   - create a library for the ECS

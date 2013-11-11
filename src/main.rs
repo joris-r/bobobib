@@ -222,6 +222,8 @@ fn test_norm_vector(){
 
 // TODO define an integration function and refactor
 // compute_velocity and compute_position.
+
+// TODO it's not really usefull to record acceleration
   
 /* ----------------------------------------------------------- */
   
@@ -234,6 +236,15 @@ fn init_system() -> ~Manager {
   mng.table_velocity.set(entity1, Vec(0.,1.,0.).scale(0.87) );
   mng.table_acceleration.set(entity1, zero);
   mng.table_mass.set(entity1, 1.);
+  //
+  for i in range(1,10) {
+    let entity2 = mng.new_entity();
+    mng.table_position.set(entity2, Vec(i as MyFloat,0.,i as MyFloat).scale(3.) );
+    mng.table_velocity.set(entity2, Vec(0.,i as MyFloat,0.).scale(0.1) );
+    mng.table_acceleration.set(entity2, zero);
+    mng.table_mass.set(entity2, 1.);
+  }
+  //
   return mng;
 }
 
