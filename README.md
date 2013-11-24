@@ -40,6 +40,7 @@ goal is in fact to learn Rust.
   - compute gravity force vector from position
   - graphical display (just a plot in 2D)
   - operation for random vector between given limits (implem incorrect)
+  - render a plain circle
 
 ## What's next
   - express the system by an iterator combined with an atomic operation
@@ -48,8 +49,10 @@ goal is in fact to learn Rust.
   - the planet definition
   - detect collision with the planet and reaction
   - create a library for the ECS
-  - render a plain circle
   - try multi-thread processing
+  - make a 3D depth effect on the circle drawing
+  - use a Z-buffer for 3D drawing
+  - add a size propertie on circles
 
  -------------------------------------------------------------
 

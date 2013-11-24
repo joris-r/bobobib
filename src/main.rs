@@ -115,7 +115,7 @@ fn draw(mng: &Manager, screen: &sdl::video::Surface){
     let scale = 5.;
     x = (pos_x*scale + 400.) as i16;
     y = (pos_y*scale + 300.) as i16 ;
-    draw_plot(screen, x, y);
+    draw_circle(screen, x, y);
   }
 }
   
@@ -173,6 +173,24 @@ fn compute_position(mng: &mut Manager, dt:MyFloat) {
     let pos = *mng.table_position.get(e);
     let new_pos = pos + vel.scale(dt);
     mng.table_position.set(e, new_pos);
+  }
+}
+
+fn draw_circle(screen : &sdl::video::Surface, px : i16, py : i16){
+  // this algorithm is dumb
+  // TODO use a proper algorithm for circle drawing
+  let r = 10;
+  let mut x = -r;
+  let mut y = -r;
+  while(y <= r){
+    if x*x + y*y <= r*r {
+      draw_plot(screen, px+x, py+y);
+    }
+    x += 1;
+    if r < x {
+      x = -r;
+      y += 1;
+    }
   }
 }
 
