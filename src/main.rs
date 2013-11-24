@@ -12,65 +12,12 @@ See joined files "LICENSE-APACHE" and "LICENSE-MIT".
 
 extern mod sdl;
 
-/* ----------------------------------------------------------- */
-
-struct FunctionalTable<C> {
-  priv name : ~str,
-  priv map : ~std::hashmap::HashMap<Entity, C> 
-}
-
-impl<C : ToStr + Clone> FunctionalTable<C> {
-
-  fn new(name : ~str) -> FunctionalTable<C>{
-    info!("create_table name={}",name);
-    FunctionalTable{
-      name : name,
-      map : ~std::hashmap::HashMap::new()
-    }
-  }
-  
-  fn set(&mut self, e : Entity, v : C) {
-    info!("set id={} cmpt={} val={}", e, self.name, v.to_str() );
-    self.map.swap(e,v);
-  }
-  
-  /* fail if the entity e does not have a component */
-  fn get<'a>(&'a self, e : Entity) -> &'a C {
-    self.map.get(&e)
-  }
-
-  /* TODO create an own iterator type (or re-use some trait) */
-  fn iter<'a>(&'a self) -> std::hashmap::HashMapIterator<'a, Entity, C> {
-    self.map.iter()
-  }
-  
-  fn apply(&mut self, f : &fn(Entity, &C) -> C) {
-    let copy = self.map.clone();
-    // TODO do I really need to copy all the map ?
-    for (&e,c) in copy.iter() {
-      let new_c = f(e, c);
-      info!("set id={} cmpt={} val={}", e, self.name, new_c.to_str() );
-      self.map.swap(e, new_c);
-    }
-  }
-  
-}
-
-#[test]
-fn test_FunctionalTable_get_set(){
-  let mut table : FunctionalTable<Vec> = FunctionalTable::new(~"test");
-  let vec = Vec(12., 56., 3.);
-  let e1 = 42;
-  table.set(e1,vec);
-  assert!( vec == *table.get(e1) );
-}
-
-
-/* ----------------------------------------------------------- */
-
-
-/* We need a type for the entities, which is just an identifier. */
-type Entity = uint;
+use ecs::FunctionalTable;
+use ecs::Entity;
+use vec::Vec;
+use vec::MyFloat;
+mod ecs;
+mod vec;
 
 /* Let's defining a data structure for managing our ECS. */
 struct Manager {
@@ -121,102 +68,6 @@ fn test_entity_management() {
   assert!( e2 == 1 );
 }
 
-
-/* ----------------------------------------------------------- */
-
-
-/* We're using double size float */
-type MyFloat = f64;
-
-/* Simple vector type for 3D position */
-#[deriving(Eq,Clone)]
-struct Vec(MyFloat, MyFloat, MyFloat);
-
-impl ToStr for Vec {
-  fn to_str(&self) -> ~str {
-    let &Vec(x,y,z) = self;
-    format!("({},{},{})", x, y, z)
-  }
-}
-
-impl Add<Vec, Vec> for Vec {
-  fn add(&self, rhs: &Vec) -> Vec {
-    let &Vec(ax, ay, az) = self;
-    let &Vec(bx, by, bz) = rhs;
-    Vec(bx+ax, by+ay, bz+az)
-  }
-}
-
-impl Sub<Vec, Vec> for Vec {
-  fn sub(&self, rhs: &Vec) -> Vec{
-    let &Vec(ax, ay, az) = self;
-    let &Vec(bx, by, bz) = rhs;
-    Vec(ax-bx, ay-by, az-bz)
-  }
-}
-
-#[test]
-fn test_add_vector(){
-  let a = Vec(1., 2., 3.);
-  let b = Vec(3., 2., 1.);
-  let c = Vec(4., 4., 4.);
-  assert!( a + b == c );
-}
-
-#[test]
-fn test_sub_vector(){
-  let a = Vec(1., 2., 3.);
-  let b = Vec(3., 2., 1.);
-  let c = Vec(4., 4., 4.);
-  assert!( c - b == a);
-}
-
-impl Vec{
-  // multiply by a scalar
-  fn scale(&self, a: MyFloat) -> Vec {
-    let Vec(sx, sy, sz) = *self;
-    Vec(sx*a, sy*a, sz*a)
-  }
-
-  fn length(&self) -> MyFloat {
-    let Vec(sx, sy, sz) = *self;
-    (sx*sx + sy*sy + sz*sz).sqrt()
-  }
-  
-  fn normalize(&self) -> Vec {
-    let l = self.length();
-    self.scale(1. / l)
-  }
-  
-  fn is_nan(&self) -> bool {
-    let Vec(sx, sy, sz) = *self;
-    sx.is_nan() ||
-    sy.is_nan() ||
-    sz.is_nan()
-  }
-  
-}
-
-#[test]
-fn test_scale_vector(){
-  let a = Vec(1., 2., 3.);
-  let b : MyFloat = 10.;
-  let c = Vec(10., 20., 30.);
-  assert!( a.scale(b) == c );
-}
-
-#[test]
-fn test_length_vector(){
-  let a = Vec(2., 2., 1.);
-  assert!( a.length() == 3. );
-}
-
-#[test]
-fn test_norm_vector(){
-  let a = Vec(0., 2., 0.);
-  let b = Vec(0., 1., 0.);
-  assert!( a.normalize() == b );
-}
 
 /* ----------------------------------------------------------- */
 
