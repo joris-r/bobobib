@@ -82,16 +82,11 @@ fn init_system() -> ~Manager {
   println("use RUST_LOG=3 to see log");
   let mut mng = Manager::new();
   let zero = Vec(0., 0., 0.);
-  let entity1 = mng.new_entity();
-  mng.table_position.set(entity1, Vec(1.,0.,0.).scale(20.) );
-  mng.table_velocity.set(entity1, Vec(0.,1.,0.).scale(0.87) );
-  mng.table_acceleration.set(entity1, zero);
-  mng.table_mass.set(entity1, 1.);
   //
-  for i in range(1,10) {
+  for i in range(0,10) {
     let entity2 = mng.new_entity();
-    mng.table_position.set(entity2, Vec(i as MyFloat,0.,i as MyFloat).scale(3.) );
-    mng.table_velocity.set(entity2, Vec(0.,i as MyFloat,0.).scale(0.1) );
+    mng.table_position.set(entity2, Vec::rand_around_origin(5., 25.) );
+    mng.table_velocity.set(entity2, Vec::rand_around_origin(0.2, 0.5) );
     mng.table_acceleration.set(entity2, zero);
     mng.table_mass.set(entity2, 1.);
   }
@@ -102,7 +97,7 @@ fn init_system() -> ~Manager {
 fn system_loop(mng : &mut Manager, cycle : uint, screen: &sdl::video::Surface){
   let delta_time = 1./24. as MyFloat; // TODO compute real delay
 
-  println!("start_cycle {}",cycle);
+  info!("start_cycle {}",cycle);
   
   compute_acceleration(mng);
   compute_velocity(mng, delta_time);
@@ -183,10 +178,10 @@ fn compute_position(mng: &mut Manager, dt:MyFloat) {
 
 fn draw_plot(screen : &sdl::video::Surface, px : i16, py : i16){
   let rect = Some(sdl::Rect {
-                x: px-1,
-                y: py-1,
-                w: 3,
-                h: 3
+                x: px,
+                y: py,
+                w: 1,
+                h: 1
             });
   let color= sdl::video::RGB(255,255,255);
   screen.fill_rect(rect,color);

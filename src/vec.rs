@@ -47,6 +47,22 @@ fn test_sub_vector(){
 }
 
 impl Vec{
+  pub fn rand_around_origin(min_radius:MyFloat, max_radius:MyFloat) -> Vec {
+    let f = ||{
+      // I'm going to do something stupid
+      // TODO replace that by polar coord computation
+      let mut x;
+      loop {
+        x = ::std::rand::random::<MyFloat>() * max_radius * 2. - max_radius;
+        if x<=-min_radius || min_radius<=x {
+          break;
+        }
+      }
+      x
+    };
+    Vec(f(), f(), f())
+  }
+
   // multiply by a scalar
   pub fn scale(&self, a: MyFloat) -> Vec {
     let Vec(sx, sy, sz) = *self;

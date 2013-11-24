@@ -39,10 +39,10 @@ goal is in fact to learn Rust.
   - normalization of a vector
   - compute gravity force vector from position
   - graphical display (just a plot in 2D)
+  - operation for random vector between given limits (implem incorrect)
 
 ## What's next
   - express the system by an iterator combined with an atomic operation
-  - operation for random vector between given limits
   - real-time timing
   - notion of view/camera
   - the planet definition
